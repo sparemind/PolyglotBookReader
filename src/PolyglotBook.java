@@ -1,3 +1,4 @@
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,7 +32,7 @@ public class PolyglotBook {
     // The index of a piece in this string gives the value for determining the
     // offset of where in the pieces section of RANDOM_64 the zobrist bitstrings
     // for that piece start.
-    private static final String PIECES = "pnbrqkPNBRQK";
+    private static final String PIECES = "pPnNbBrRqQkK";
 
     // Opening book loaded with the loaded file data.
     // Key: Zobrist hash, Value: Entries for that hash's position
@@ -46,7 +47,7 @@ public class PolyglotBook {
     public PolyglotBook(String filename) throws IOException {
         this.book = new HashMap<>();
 
-        FileInputStream infile = new FileInputStream("Perfect2017.bin");
+        BufferedInputStream infile = new BufferedInputStream(new FileInputStream(filename));
 
         // Process each entry in the book
         byte[] buffer = new byte[ENTRY_SIZE];
@@ -66,9 +67,9 @@ public class PolyglotBook {
             e.fromRank = (e.move & 0b111000000000) >> 9;
             e.promotionPiece = (e.move & 0b111000000000000) >> 12;
 
-            // if (key == 0x463b96181691fc9cL) {
-            if (key == 0x823c9b50fd114196L) {
-                System.out.printf("%c%d to %c%d -- %d\n", 'a' + e.fromFile, 1 + e.fromRank, 'a' + e.toFile, 1 + e.toRank, e.weight);
+            // Ignore if the move is a1-a1
+            if (e.toFile == 0 && e.toRank == 0 && e.fromFile == 0 && e.fromRank == 0) {
+                continue;
             }
 
             // Add this entry into the book
@@ -76,11 +77,6 @@ public class PolyglotBook {
                 this.book.put(key, new EntrySet());
             }
             this.book.get(key).addEntry(e);
-        }
-
-        for (Entry e : this.book.get(0x823c9b50fd114196L).entries) {
-            // for (Entry e : this.book.get(0x463b96181691fc9cL).entries) {
-            System.out.printf("%c%d to %c%d -- %d\n", 'a' + e.fromFile, 1 + e.fromRank, 'a' + e.toFile, 1 + e.toRank, e.weight);
         }
     }
 
